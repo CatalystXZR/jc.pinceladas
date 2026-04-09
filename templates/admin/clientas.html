@@ -1,0 +1,93 @@
+{% extends "base.html" %}
+{% block title %}Clientas{% endblock %}
+
+{% block content %}
+<div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; margin-bottom: 18px;">
+    <h1 class="page-title" style="margin-bottom: 0;">Clientas</h1>
+    <a href="{{ url_for('admin_nueva_clienta') }}" class="btn btn-primary">Nueva clienta</a>
+</div>
+
+<div class="card" style="padding: 14px 16px;">
+    <form method="GET" action="{{ url_for('admin_clientas') }}"
+          style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+        <input type="text" name="buscar" value="{{ busqueda }}"
+               placeholder="Buscar por nombre, correo o codigo"
+               style="flex: 1; min-width: 200px;">
+        <button type="submit" class="btn btn-primary">Buscar</button>
+        {% if busqueda %}
+            <a href="{{ url_for('admin_clientas') }}" class="btn btn-secondary">Limpiar</a>
+        {% endif %}
+    </form>
+</div>
+
+{% if clientas %}
+<div class="card" style="padding: 0; overflow: hidden;">
+    <table>
+        <thead>
+            <tr>
+                <th>Código</th>
+                <th>Nombre</th>
+                <th>Correo</th>
+                <th>Clave acceso</th>
+                <th>Estado</th>
+                <th>Registrada</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for c in clientas %}
+            <tr>
+                <td>
+                    <code style="background: #f5e8e0; padding: 3px 8px; border-radius: 4px;
+                                 font-size: 0.9em;">{{ c.codigo }}</code>
+                </td>
+                <td><strong>{{ c.nombre }}</strong></td>
+                <td style="font-size: 0.9em; color: #666;">{{ c.email }}</td>
+                <td>
+                    <code style="background: #e8f5e9; padding: 3px 8px; border-radius: 4px;
+                                 font-size: 0.9em; font-weight: bold; color: #2e7d32;">
+                        {{ c.clave_acceso }}
+                    </code>
+                </td>
+                <td>
+                    {% if c.activa %}
+                        <span class="badge badge-active">Activa</span>
+                    {% else %}
+                        <span class="badge badge-expired">Inactiva</span>
+                    {% endif %}
+                </td>
+                <td style="font-size: 0.85em; color: #999;">
+                    {{ c.created_at.strftime('%d/%m/%Y') }}
+                </td>
+                <td>
+                    <a href="{{ url_for('admin_detalle_clienta', clienta_id=c.id) }}"
+                       class="btn btn-sm btn-primary">Ver detalle</a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<p class="muted" style="margin-top: 8px; text-align: right;">
+    {{ clientas|length }} clienta(s) encontrada(s)
+</p>
+
+{% else %}
+<div class="card" style="text-align: center; padding: 36px 20px;">
+    <p style="color: #75604f; margin-top: 6px;">
+        {% if busqueda %}
+            No se encontraron clientas con "{{ busqueda }}"
+        {% else %}
+            Aún no hay clientas registradas.
+        {% endif %}
+    </p>
+    {% if not busqueda %}
+        <a href="{{ url_for('admin_nueva_clienta') }}" class="btn btn-primary" style="margin-top: 14px;">
+            Crear primera clienta
+        </a>
+    {% endif %}
+</div>
+{% endif %}
+
+{% endblock %}

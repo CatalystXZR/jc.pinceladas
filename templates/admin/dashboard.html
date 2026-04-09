@@ -1,0 +1,188 @@
+{% extends "base.html" %}
+
+{% block title %}Panel - {{ brand_name }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 14px;
+        margin-bottom: 22px;
+    }
+
+    .stat-card {
+        background: linear-gradient(155deg, #fffdfa, #f8efe5);
+        border: 1px solid #e5d7c8;
+        border-radius: 18px;
+        padding: 18px;
+        box-shadow: 0 12px 30px rgba(131, 98, 70, 0.08);
+    }
+
+    .stat-label {
+        color: #8f7a69;
+        font-size: 0.82rem;
+        margin-bottom: 7px;
+        text-transform: uppercase;
+        letter-spacing: 0.6px;
+    }
+
+    .stat-value {
+        font-family: 'Cormorant Garamond', serif;
+        font-size: 2.2rem;
+        color: #5e4737;
+        line-height: 1;
+    }
+
+    .layout {
+        display: grid;
+        grid-template-columns: 1.25fr 1fr;
+        gap: 16px;
+    }
+
+    .alert-item {
+        border: 1px solid #eddcc8;
+        background: #fffbf4;
+        border-radius: 14px;
+        padding: 12px;
+        margin-bottom: 10px;
+        font-size: 0.88rem;
+        color: #6b5545;
+    }
+
+    .event-list {
+        display: grid;
+        gap: 10px;
+    }
+
+    .event-item {
+        border: 1px solid #ebe0d3;
+        border-radius: 12px;
+        padding: 10px 12px;
+        background: #fffdf9;
+    }
+
+    .event-main {
+        font-weight: 600;
+        color: #604a3a;
+        font-size: 0.9rem;
+        margin-bottom: 3px;
+    }
+
+    .event-meta {
+        color: #967f6d;
+        font-size: 0.8rem;
+    }
+
+    .quick-actions {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+    }
+
+    @media (max-width: 920px) {
+        .layout {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<h1 class="page-title">Panel de control</h1>
+
+<div class="stats-grid">
+    <article class="stat-card">
+        <p class="stat-label">Clientas activas</p>
+        <p class="stat-value">{{ total_clientas }}</p>
+    </article>
+    <article class="stat-card">
+        <p class="stat-label">Cursos activos</p>
+        <p class="stat-value">{{ total_cursos }}</p>
+    </article>
+    <article class="stat-card">
+        <p class="stat-label">Accesos vigentes</p>
+        <p class="stat-value">{{ accesos_activos }}</p>
+    </article>
+</div>
+
+<section class="card">
+    <h2 class="card-title">Acciones rapidas</h2>
+    <div class="quick-actions">
+        <a href="{{ url_for('admin_nueva_clienta') }}" class="btn btn-primary">Nueva clienta</a>
+        <a href="{{ url_for('admin_nuevo_curso') }}" class="btn btn-success">Nuevo curso</a>
+        <a href="{{ url_for('admin_clientas') }}" class="btn btn-secondary">Ver clientas</a>
+        <a href="{{ url_for('admin_eventos') }}" class="btn btn-secondary">Ver actividad</a>
+    </div>
+</section>
+
+<div class="layout">
+    <section class="card">
+        <h2 class="card-title">Accesos por vencer (7 dias)</h2>
+        {% if por_expirar %}
+            {% for acceso in por_expirar %}
+                <div class="alert-item">
+                    <strong>{{ acceso.clienta.nombre }}</strong> - {{ acceso.curso.nombre }}<br>
+                    Vence el {{ acceso.fecha_expiracion | fecha_es }} ({{ acceso.dias_restantes }} dias)
+                    <div style="margin-top: 8px;">
+                        <a href="{{ url_for('admin_detalle_clienta', clienta_id=acceso.clienta_id) }}" class="btn btn-sm btn-primary">Abrir clienta</a>
+                    </div>
+                </div>
+            {% endfor %}
+        {% else %}
+            <p class="muted">No hay accesos por vencer en los proximos 7 dias.</p>
+        {% endif %}
+    </section>
+
+    <section class="card">
+        <h2 class="card-title">Actividad reciente</h2>
+        {% if ultimos_eventos %}
+            <div class="event-list">
+                {% for evento in ultimos_eventos %}
+                    <article class="event-item">
+                        <p class="event-main">{{ evento.accion }}</p>
+                        <p class="event-meta">
+                            {{ evento.actor_nombre }} - {{ evento.created_at.strftime('%d/%m/%Y %H:%M') }}
+                            {% if evento.entidad %}<br>{{ evento.entidad }}{% endif %}
+                        </p>
+                    </article>
+                {% endfor %}
+            </div>
+        {% else %}
+            <p class="muted">Aun no hay actividad registrada.</p>
+        {% endif %}
+    </section>
+</div>
+
+<section class="card">
+    <h2 class="card-title">Ultimas clientas</h2>
+    {% if ultimas_clientas %}
+        <table>
+            <thead>
+                <tr>
+                    <th>Nombre</th>
+                    <th>Codigo</th>
+                    <th>Correo</th>
+                    <th>Registro</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for c in ultimas_clientas %}
+                    <tr>
+                        <td><strong>{{ c.nombre }}</strong></td>
+                        <td>{{ c.codigo }}</td>
+                        <td>{{ c.email }}</td>
+                        <td>{{ c.created_at.strftime('%d/%m/%Y') }}</td>
+                        <td>
+                            <a href="{{ url_for('admin_detalle_clienta', clienta_id=c.id) }}" class="btn btn-sm btn-secondary">Abrir</a>
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <p class="muted">Sin clientas registradas aun.</p>
+    {% endif %}
+</section>
+{% endblock %}

@@ -1,0 +1,6 @@
+Credenciales panel admin:
+usuario: ADMIN
+contraseña: ceramica2026
+
+Credenciales panel cliente:
+clave: WEYZMK3P

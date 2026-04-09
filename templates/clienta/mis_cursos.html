@@ -1,0 +1,158 @@
+{% extends "base.html" %}
+{% block title %}Mis Cursos{% endblock %}
+
+{% block extra_css %}
+<style>
+    .welcome {
+        border-radius: 20px;
+        padding: 26px;
+        margin-bottom: 20px;
+        color: #fdf7ef;
+        background:
+            radial-gradient(circle at 20% 20%, rgba(255, 255, 255, 0.18), transparent 30%),
+            linear-gradient(135deg, #8e7058, #b69274 70%);
+        box-shadow: 0 20px 34px rgba(105, 77, 57, 0.2);
+    }
+
+    .welcome h2 {
+        font-size: clamp(2rem, 4vw, 2.5rem);
+        margin-bottom: 6px;
+    }
+
+    .welcome p {
+        opacity: 0.9;
+        max-width: 56ch;
+    }
+
+    .course-grid {
+        display: grid;
+        gap: 14px;
+    }
+
+    .course-card {
+        background: #fffefb;
+        border: 1px solid #eadfce;
+        border-radius: 18px;
+        padding: 18px;
+        box-shadow: 0 12px 26px rgba(131, 98, 70, 0.08);
+        display: flex;
+        justify-content: space-between;
+        gap: 14px;
+        align-items: center;
+        flex-wrap: wrap;
+    }
+
+    .course-title {
+        color: #5e4939;
+        font-size: 1.7rem;
+        margin-bottom: 6px;
+    }
+
+    .course-meta {
+        color: #886f5d;
+        font-size: 0.88rem;
+        line-height: 1.55;
+    }
+
+    .progress {
+        margin-top: 8px;
+        width: 210px;
+        height: 9px;
+        border-radius: 999px;
+        background: #efe1d2;
+        overflow: hidden;
+    }
+
+    .progress span {
+        display: block;
+        height: 100%;
+        border-radius: 999px;
+        background: linear-gradient(90deg, #4f9d66, #6fb788);
+    }
+
+    .progress span.warning {
+        background: linear-gradient(90deg, #c88741, #d8a060);
+    }
+
+    .cta {
+        padding: 11px 20px;
+        border-radius: 999px;
+        background: linear-gradient(135deg, #b69274, #8e7058);
+        color: #fff;
+        text-decoration: none;
+        font-weight: 700;
+        font-size: 0.9rem;
+    }
+
+    .empty {
+        text-align: center;
+        color: #765f4f;
+        padding: 26px 18px;
+    }
+
+    .help-link {
+        color: #7f5f47;
+        font-weight: 700;
+        text-decoration: none;
+        border-bottom: 1px dashed rgba(127, 95, 71, 0.45);
+    }
+
+    .help-link:hover {
+        color: #5e4430;
+        border-bottom-color: rgba(94, 68, 48, 0.8);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<section class="welcome">
+    <h2>Hola, {{ current_user.nombre.split()[0] }}</h2>
+    <p>Aqui estan tus cursos activos. Entra cuando quieras y sigue creando.</p>
+</section>
+
+{% if accesos %}
+<section class="course-grid">
+    {% for acceso in accesos %}
+        {% set dias_totales = (acceso.fecha_expiracion - acceso.fecha_inicio).days %}
+        {% set porcentaje = (acceso.dias_restantes / dias_totales * 100) if dias_totales > 0 else 0 %}
+        {% set porcentaje_final = 0 if porcentaje < 0 else (100 if porcentaje > 100 else porcentaje) %}
+
+        <article class="course-card">
+            <div>
+                <h3 class="course-title">{{ acceso.curso.nombre }}</h3>
+
+                {% if acceso.curso.descripcion %}
+                    <p class="course-meta">{{ acceso.curso.descripcion }}</p>
+                {% endif %}
+
+                <p class="course-meta">
+                    Acceso valido hasta: <strong>{{ acceso.fecha_expiracion | fecha_es }}</strong><br>
+                    Quedan <strong>{{ acceso.dias_restantes }} dia(s)</strong>
+                </p>
+
+                <div class="progress">
+                    <span class="{% if acceso.dias_restantes <= 7 %}warning{% endif %}" style="width: {{ porcentaje_final }}%"></span>
+                </div>
+            </div>
+
+            <a class="cta" href="{{ url_for('ver_video', acceso_id=acceso.id) }}">Ver video</a>
+        </article>
+    {% endfor %}
+</section>
+{% else %}
+<section class="card empty">
+    <h3 class="card-title" style="margin-bottom: 6px;">Aun no tienes cursos activos</h3>
+    <p>Cuando compres o te asignen un curso, aparecera aqui.</p>
+</section>
+{% endif %}
+
+<section class="card" style="background: #fff8ef; border-left: 4px solid #b69274;">
+    <strong>Ayuda</strong>
+    <p style="margin-top: 8px; color: #6f5a4b; font-size: 0.9rem;">
+        Si necesitas soporte para ver tus clases, escribenos al
+        <a class="help-link" href="https://wa.me/{{ support_whatsapp | replace('+', '') | replace(' ', '') }}" target="_blank" rel="noopener noreferrer">{{ support_whatsapp }}</a>
+        o por Instagram
+        <a class="help-link" href="https://instagram.com/{{ support_instagram | replace('@', '') }}" target="_blank" rel="noopener noreferrer">{{ support_instagram }}</a>.
+    </p>
+</section>
+{% endblock %}

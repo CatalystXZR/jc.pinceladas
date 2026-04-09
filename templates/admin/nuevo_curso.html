@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+{% block title %}Nuevo Curso{% endblock %}
+
+{% block content %}
+<div style="display: flex; align-items: center; gap: 15px; margin-bottom: 25px;">
+    <a href="{{ url_for('admin_cursos') }}" class="btn btn-secondary">← Volver</a>
+    <h1 class="page-title" style="margin: 0;">Nuevo curso</h1>
+</div>
+
+<div class="card" style="max-width: 620px;">
+    <form method="POST">
+        <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
+
+        <div class="form-group">
+            <label for="nombre">Nombre del curso *</label>
+            <input type="text" id="nombre" name="nombre"
+                   placeholder="Ej: Taller de Cerámica - Tazas" required>
+        </div>
+
+        <div class="form-group">
+            <label for="descripcion">Descripcion (opcional)</label>
+            <textarea id="descripcion" name="descripcion"
+                      placeholder="Describe brevemente qué aprenderá la clienta..."></textarea>
+        </div>
+
+        <div class="form-group">
+            <label for="tipo_video">Tipo de video</label>
+            <select id="tipo_video" name="tipo_video">
+                <option value="youtube">YouTube</option>
+                <option value="vimeo">Vimeo</option>
+                <option value="drive">Google Drive</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label for="video_url">URL del video *</label>
+            <input type="text" id="video_url" name="video_url"
+                   placeholder="Pega aquí el link del video" required>
+            <small style="color: #999; line-height: 1.6;">
+                <strong>YouTube:</strong> https://youtu.be/XXXX o https://youtube.com/watch?v=XXXX<br>
+                <strong>Vimeo:</strong> https://vimeo.com/XXXXXXX<br>
+                <strong>Drive:</strong> https://drive.google.com/file/d/XXXX/view
+            </small>
+        </div>
+
+        <div style="display: flex; gap: 12px; flex-wrap: wrap;">
+            <button type="submit" class="btn btn-primary">Crear curso</button>
+            <a href="{{ url_for('admin_cursos') }}" class="btn btn-secondary">Cancelar</a>
+        </div>
+    </form>
+</div>
+{% endblock %}

@@ -1,0 +1,255 @@
+{% extends "base.html" %}
+{% block title %}{{ clienta.nombre }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .info-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 15px;
+    }
+
+    .info-item label {
+        font-size: 0.82em;
+        text-transform: uppercase;
+        color: #aaa;
+        margin-bottom: 3px;
+    }
+
+    .info-item span {
+        font-size: 1em;
+        color: #3d2b1f;
+    }
+
+    .clave-box {
+        background: #e8f5e9;
+        border: 2px dashed #27ae60;
+        border-radius: 10px;
+        padding: 15px 20px;
+        text-align: center;
+        margin: 15px 0;
+    }
+
+    .clave-box .clave-text {
+        font-size: 2em;
+        font-weight: bold;
+        color: #1b5e20;
+        letter-spacing: 4px;
+        font-family: monospace;
+    }
+
+    @media (max-width: 600px) {
+        .info-grid { grid-template-columns: 1fr; }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div style="display: flex; align-items: center; gap: 15px; margin-bottom: 25px; flex-wrap: wrap;">
+    <a href="{{ url_for('admin_clientas') }}" class="btn btn-secondary">← Volver</a>
+    <h1 class="page-title" style="margin: 0;">
+        {{ clienta.nombre }}
+        {% if not clienta.activa %}
+            <span class="badge badge-expired" style="font-size: 0.5em; vertical-align: middle;">INACTIVA</span>
+        {% endif %}
+    </h1>
+</div>
+
+<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px;">
+
+    <!-- ============================================================
+         INFORMACIÓN DE LA CLIENTA
+         ============================================================ -->
+    <div class="card">
+        <div class="card-title">Informacion de la clienta</div>
+
+        <div class="info-grid">
+            <div class="info-item">
+                <label>Código</label>
+                <span><code style="background: #f5e8e0; padding: 2px 8px; border-radius: 4px;">
+                    {{ clienta.codigo }}</code></span>
+            </div>
+            <div class="info-item">
+                <label>Registrada</label>
+                <span>{{ clienta.created_at.strftime('%d/%m/%Y') }}</span>
+            </div>
+            <div class="info-item">
+                <label>Nombre</label>
+                <span>{{ clienta.nombre }}</span>
+            </div>
+            <div class="info-item">
+                <label>Correo</label>
+                <span style="font-size: 0.9em;">{{ clienta.email }}</span>
+            </div>
+            <div class="info-item">
+                <label>Teléfono</label>
+                <span>{{ clienta.telefono or 'No registrado' }}</span>
+            </div>
+            <div class="info-item">
+                <label>Estado</label>
+                <span>
+                    {% if clienta.activa %}
+                        <span class="badge badge-active">Activa</span>
+                    {% else %}
+                        <span class="badge badge-expired">Inactiva</span>
+                    {% endif %}
+                </span>
+            </div>
+        </div>
+
+        <!-- Clave de acceso -->
+        <div class="clave-box">
+            <div style="font-size: 0.8em; color: #555; margin-bottom: 5px;">
+                Clave para ingresar a la plataforma:
+            </div>
+            <div class="clave-text">{{ clienta.clave_acceso }}</div>
+            <div style="font-size: 0.8em; color: #888; margin-top: 8px;">
+                Entrégale esta clave a la clienta
+            </div>
+        </div>
+
+        <!-- Regenerar clave -->
+        <form method="POST"
+              action="{{ url_for('admin_regenerar_clave', clienta_id=clienta.id) }}"
+              onsubmit="return confirm('¿Regenerar la clave? La clienta necesitará usar la nueva clave para ingresar.')">
+            <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
+            <button type="submit" class="btn btn-sm btn-warning">Regenerar clave</button>
+        </form>
+    </div>
+
+    <!-- ============================================================
+         AGREGAR NUEVO CURSO
+         ============================================================ -->
+    <div class="card">
+        <div class="card-title">Agregar acceso a curso</div>
+
+        <form method="POST"
+              action="{{ url_for('admin_agregar_curso', clienta_id=clienta.id) }}">
+            <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
+
+            <div class="form-group">
+                <label for="curso_id">Curso</label>
+                <select id="curso_id" name="curso_id" required>
+                    <option value="">-- Selecciona un curso --</option>
+                    {% for curso in cursos_disponibles %}
+                        <option value="{{ curso.id }}">{{ curso.nombre }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="dias_acceso">Días de acceso</label>
+                <input type="number" id="dias_acceso" name="dias_acceso"
+                       value="60" min="1" max="365">
+            </div>
+
+            <div class="form-group">
+                <label for="notas">Notas (opcional)</label>
+                <textarea name="notas" placeholder="Ej: Pagó transferencia 15/3/2026"></textarea>
+            </div>
+
+            <button type="submit" class="btn btn-success">Agregar acceso</button>
+        </form>
+
+        <hr style="border-color: #f0d0c0; margin: 20px 0;">
+
+        <!-- Revocar todo -->
+        {% if clienta.activa %}
+        <form method="POST"
+              action="{{ url_for('admin_revocar_todo', clienta_id=clienta.id) }}"
+              onsubmit="return confirm('¿Revocar TODOS los accesos de {{ clienta.nombre }}? Esta acción la dejará sin acceso a ningún curso.')">
+            <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
+            <button type="submit" class="btn btn-danger btn-sm">
+                Revocar todos los accesos
+            </button>
+        </form>
+        {% endif %}
+    </div>
+</div>
+
+<!-- ============================================================
+     LISTADO DE ACCESOS A CURSOS
+     ============================================================ -->
+<div class="card">
+    <div class="card-title">Accesos a cursos</div>
+
+    {% if clienta.accesos %}
+    <table>
+        <thead>
+            <tr>
+                <th>Curso</th>
+                <th>Inicio</th>
+                <th>Expira</th>
+                <th>Estado</th>
+                <th>Notas</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for acceso in clienta.accesos|sort(attribute='fecha_inicio', reverse=True) %}
+            <tr>
+                <td><strong>{{ acceso.curso.nombre }}</strong></td>
+                <td style="font-size: 0.85em;">
+                    {{ acceso.fecha_inicio.strftime('%d/%m/%Y') }}
+                </td>
+                <td style="font-size: 0.85em;">
+                    {{ acceso.fecha_expiracion.strftime('%d/%m/%Y') }}
+                    {% if acceso.esta_vigente %}
+                        <br><small style="color: #27ae60;">
+                            ({{ acceso.dias_restantes }} días restantes)
+                        </small>
+                    {% endif %}
+                </td>
+                <td>
+                    {% if acceso.esta_vigente %}
+                        <span class="badge badge-active">Vigente</span>
+                    {% elif not acceso.activo %}
+                        <span class="badge badge-expired">Revocado</span>
+                    {% else %}
+                        <span class="badge badge-expired">Expirado</span>
+                    {% endif %}
+                </td>
+                <td style="font-size: 0.85em; color: #888;">
+                    {{ acceso.notas or '-' }}
+                </td>
+                <td>
+                    {% if acceso.esta_vigente %}
+                        <form method="POST"
+                              action="{{ url_for('admin_revocar_acceso', acceso_id=acceso.id) }}"
+                              style="display:inline;"
+                              onsubmit="return confirm('¿Revocar acceso a {{ acceso.curso.nombre }}?')">
+                            <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
+                            <button type="submit" class="btn btn-sm btn-danger">Revocar</button>
+                        </form>
+
+                        <form method="POST"
+                              action="{{ url_for('admin_extender_acceso', acceso_id=acceso.id) }}"
+                              style="display:inline; margin-top: 6px; display:flex; gap:5px; align-items:center; flex-wrap:wrap;">
+                            <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
+                            <input type="number" name="dias_extender" value="30" min="1" max="365"
+                                   style="width: 74px; padding: 5px; font-size: 0.85em;">
+                            <button type="submit" class="btn btn-sm btn-warning">Extender</button>
+                        </form>
+                    {% else %}
+                        <form method="POST"
+                              action="{{ url_for('admin_reactivar_acceso', acceso_id=acceso.id) }}"
+                              style="display:inline; display:flex; gap:5px; align-items:center; flex-wrap:wrap;">
+                            <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
+                            <input type="number" name="dias" value="60" min="1" max="365"
+                                    style="width: 70px; padding: 5px; font-size: 0.85em;">
+                            <button type="submit" class="btn btn-sm btn-success">Reactivar</button>
+                        </form>
+                    {% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <p style="color: #888; text-align: center; padding: 30px 0;">
+        Esta clienta no tiene cursos asignados todavía.
+    </p>
+    {% endif %}
+</div>
+
+{% endblock %}

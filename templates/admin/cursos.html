@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+{% block title %}Cursos{% endblock %}
+
+{% block content %}
+<div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px; margin-bottom: 25px;">
+    <h1 class="page-title" style="margin: 0;">Cursos</h1>
+    <a href="{{ url_for('admin_nuevo_curso') }}" class="btn btn-primary">Nuevo curso</a>
+</div>
+
+{% if cursos %}
+<div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px;">
+    {% for curso in cursos %}
+    <div class="card" {% if not curso.activo %}style="opacity: 0.6;"{% endif %}>
+        <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 10px;">
+            <div>
+                <div style="font-size: 0.75em; color: #aaa; text-transform: uppercase; margin-bottom: 4px;">
+                    {{ curso.tipo_video | upper }}
+                </div>
+                <h3 class="card-title" style="margin-bottom: 8px;">
+                    {{ curso.nombre }}
+                </h3>
+            </div>
+            {% if curso.activo %}
+                <span class="badge badge-active">Activo</span>
+            {% else %}
+                <span class="badge badge-expired">Inactivo</span>
+            {% endif %}
+        </div>
+
+        {% if curso.descripcion %}
+        <p style="color: #777; font-size: 0.9em; margin-bottom: 12px; line-height: 1.5;">
+            {{ curso.descripcion }}
+        </p>
+        {% endif %}
+
+        <div style="font-size: 0.85em; color: #888; margin-bottom: 15px;">
+            {{ curso.total_clientas }} clienta(s) con acceso activo
+        </div>
+
+        <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+            <a href="{{ url_for('admin_editar_curso', curso_id=curso.id) }}"
+               class="btn btn-sm btn-warning">Editar</a>
+
+            <form method="POST" action="{{ url_for('admin_toggle_curso_estado', curso_id=curso.id) }}" style="display:inline;">
+                <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
+                {% if curso.activo %}
+                    <button type="submit" class="btn btn-sm btn-secondary">Desactivar</button>
+                {% else %}
+                    <button type="submit" class="btn btn-sm btn-success">Activar</button>
+                {% endif %}
+            </form>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% else %}
+<div class="card" style="text-align: center; padding: 50px;">
+    <p style="color: #888; margin-top: 15px;">Aun no hay cursos creados.</p>
+    <a href="{{ url_for('admin_nuevo_curso') }}" class="btn btn-primary" style="margin-top: 15px;">
+        Crear primer curso
+    </a>
+</div>
+{% endif %}
+
+<div class="card" style="background: #f0f8ff; border-left: 4px solid #3498db; margin-top: 20px;">
+    <strong>Tipos de video soportados:</strong>
+    <ul style="margin-top: 10px; color: #555; font-size: 0.9em; padding-left: 20px; line-height: 2;">
+        <li><strong>YouTube:</strong> Pega el link de YouTube (ej: https://youtu.be/XXXX)</li>
+        <li><strong>Vimeo:</strong> Pega el link de Vimeo (ej: https://vimeo.com/XXXXXXX)</li>
+        <li><strong>Google Drive:</strong> Pega el link de Drive con acceso "cualquiera con el link puede ver"</li>
+    </ul>
+</div>
+{% endblock %}

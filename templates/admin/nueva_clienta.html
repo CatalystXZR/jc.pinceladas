@@ -1,0 +1,75 @@
+{% extends "base.html" %}
+{% block title %}Nueva Clienta{% endblock %}
+
+{% block content %}
+<div style="display: flex; align-items: center; gap: 15px; margin-bottom: 25px;">
+    <a href="{{ url_for('admin_clientas') }}" class="btn btn-secondary">← Volver</a>
+    <h1 class="page-title" style="margin: 0;">Nueva clienta</h1>
+</div>
+
+<div class="card" style="max-width: 600px;">
+    <form method="POST" action="{{ url_for('admin_nueva_clienta') }}">
+        <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
+
+        <div class="form-group">
+            <label for="nombre">Nombre completo *</label>
+            <input type="text" id="nombre" name="nombre"
+                   placeholder="Ej: María González" required>
+        </div>
+
+        <div class="form-group">
+            <label for="email">Correo electrónico *</label>
+            <input type="email" id="email" name="email"
+                   placeholder="Ej: maria@gmail.com" required>
+            <small style="color: #999;">Se usará para enviar recordatorios automáticos.</small>
+        </div>
+
+        <div class="form-group">
+            <label for="telefono">Telefono (opcional)</label>
+            <input type="text" id="telefono" name="telefono"
+                   placeholder="Ej: +56 9 1234 5678">
+        </div>
+
+        <hr style="border-color: #f0d0c0; margin: 20px 0;">
+
+        <div class="form-group">
+            <label for="curso_id">Asignar curso (opcional)</label>
+            <select id="curso_id" name="curso_id">
+                <option value="">-- Sin curso por ahora --</option>
+                {% for curso in cursos %}
+                    <option value="{{ curso.id }}">{{ curso.nombre }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label for="dias_acceso">Dias de acceso</label>
+            <input type="number" id="dias_acceso" name="dias_acceso"
+                   value="60" min="1" max="365">
+            <small style="color: #999;">Por defecto: 60 días (2 meses).</small>
+        </div>
+
+        <div class="form-group">
+            <label for="notas">Notas internas (opcional)</label>
+            <textarea id="notas" name="notas"
+                      placeholder="Notas sobre el pago, curso, etc."></textarea>
+        </div>
+
+        <div style="display: flex; gap: 12px; flex-wrap: wrap;">
+            <button type="submit" class="btn btn-primary">Crear clienta</button>
+            <a href="{{ url_for('admin_clientas') }}" class="btn btn-secondary">Cancelar</a>
+        </div>
+
+    </form>
+</div>
+
+<div class="card" style="max-width: 600px; background: #fff8e1; border-left: 4px solid #ffc107;">
+    <strong>Guia rapida</strong>
+    <ul style="margin-top: 10px; color: #666; font-size: 0.9em; padding-left: 20px; line-height: 2;">
+        <li>El sistema genera automáticamente un <strong>código</strong> y una <strong>clave de acceso</strong>.</li>
+        <li>La clienta usará su <strong>clave de acceso</strong> para ingresar a la plataforma.</li>
+        <li>Si tienes el correo configurado, se le enviará un mail de bienvenida automáticamente.</li>
+        <li>Podrás ver y copiar la clave en el detalle de la clienta.</li>
+    </ul>
+</div>
+{% endblock %}

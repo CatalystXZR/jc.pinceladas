@@ -1,0 +1,21 @@
+# Entrar a la carpeta
+cd ~/Desktop/mai
+
+# Crear entorno virtual
+python3 -m venv venv
+source venv/bin/activate
+
+# Instalar dependencias
+pip install -r requirements.txt
+
+# Variables minimas (local)
+export APP_ENV=development
+export PLATFORM_URL=http://localhost:5000
+export SECRET_KEY="cambia-esto-por-una-clave-larga"
+
+# Opcional para correo
+export MAIL_USERNAME="tu_correo@gmail.com"
+export MAIL_PASSWORD="tu_password_app"
+
+# Iniciar servidor
+python3 main.py
